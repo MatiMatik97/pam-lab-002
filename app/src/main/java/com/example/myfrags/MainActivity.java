@@ -7,7 +7,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Bundle;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,10 +23,10 @@ public class MainActivity extends FragmentActivity implements Fragment1.OnButton
         setContentView(R.layout.activity_main);
 
         if (savedInstanceState == null) {
-            frames = new int[]{R.id.frame1, R.id.frame2, R.id.frame3, R.id.frame4};
+            frames = new int[]{R.id.frame1, R.id.frame3, R.id.frame4, R.id.frame2};
             hidden = false;
 
-            Fragment[] fragments = new Fragment[]{new Fragment1(), new Fragment2(), new Fragment3(), new Fragment4()};
+            Fragment[] fragments = new Fragment[]{new Fragment1(), new Fragment3(), new Fragment4(), new Fragment2()};
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
 
@@ -44,6 +43,21 @@ public class MainActivity extends FragmentActivity implements Fragment1.OnButton
     }
 
     @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().getBackStackEntryCount() != 0) {
+            getSupportFragmentManager().popBackStack();
+
+            int t = frames[3];
+            frames[3] = frames[2];
+            frames[2] = frames[1];
+            frames[1] = frames[0];
+            frames[0] = t;
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
@@ -53,8 +67,6 @@ public class MainActivity extends FragmentActivity implements Fragment1.OnButton
 
     @Override
     public void onButtonClickShuffle() {
-        Toast.makeText(getApplicationContext(), "Shuffle", Toast.LENGTH_SHORT).show();
-
         List<Integer> list = new ArrayList<Integer>(Arrays.asList(frames[0], frames[1], frames[2], frames[3]));
         Collections.shuffle(list);
 
@@ -67,8 +79,6 @@ public class MainActivity extends FragmentActivity implements Fragment1.OnButton
 
     @Override
     public void onButtonClickClockwise() {
-        Toast.makeText(getApplicationContext(), "Clockwise", Toast.LENGTH_SHORT).show();
-
         int t = frames[0];
         frames[0] = frames[1];
         frames[1] = frames[2];
@@ -80,8 +90,6 @@ public class MainActivity extends FragmentActivity implements Fragment1.OnButton
 
     @Override
     public void onButtonClickHide() {
-        Toast.makeText(getApplicationContext(), "Hide", Toast.LENGTH_SHORT).show();
-
         if (hidden) return;
 
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -90,8 +98,8 @@ public class MainActivity extends FragmentActivity implements Fragment1.OnButton
             if (f instanceof Fragment1) continue;
 
             FragmentTransaction transaction = fragmentManager.beginTransaction();
-            transaction.hide(f);
 
+            transaction.hide(f);
             transaction.addToBackStack(null);
             transaction.commit();
         }
@@ -101,8 +109,6 @@ public class MainActivity extends FragmentActivity implements Fragment1.OnButton
 
     @Override
     public void onButtonClickRestore() {
-        Toast.makeText(getApplicationContext(), "Restore", Toast.LENGTH_SHORT).show();
-
         if (!hidden) return;
 
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -110,6 +116,7 @@ public class MainActivity extends FragmentActivity implements Fragment1.OnButton
 
         for (Fragment f : fragmentManager.getFragments()) {
             if (f instanceof Fragment1) continue;
+
             transaction.show(f);
         }
 
@@ -135,8 +142,10 @@ public class MainActivity extends FragmentActivity implements Fragment1.OnButton
 
         for (int i = 0; i < 4; i++) {
             transaction.replace(frames[i], newFragments[i]);
-            if (hidden && !(newFragments[i] instanceof Fragment1))
+
+            if (hidden && !(newFragments[i] instanceof Fragment1)) {
                 transaction.hide(newFragments[i]);
+            }
         }
 
         transaction.addToBackStack(null);
